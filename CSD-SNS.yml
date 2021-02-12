@@ -1,0 +1,46 @@
+Parameters:
+  Env:
+    Description: Environment Suffix
+    Type: String
+    Default: dev
+  ProjectName:
+    Description: Enter the Project name
+    Type: String
+Resources:
+  SnsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      Tags:
+      - Key: Name
+        Value: 
+          Fn::Join:
+          - "-"
+          - - CSD-SNS
+            - Ref: Env
+      - Key: Owner
+        Value: ocs
+      - Key: Application
+        Value: opsTool  
+      - Key: Project 
+        Value:
+          Ref: ProjectName
+      - Key: Environment 
+        Value:
+          Ref: Env 
+      TopicName: 
+        Fn::Join:
+        - "-"
+        - - CSD-CFN-SNS
+          - Ref: Env   
+  CfnSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Endpoint: manoj.m@axcess.io
+      Protocol: email
+      TopicArn: !Ref SnsTopic
+
+Outputs:
+  TopicName:
+    Description: The Sns Topic Name
+    Value:
+      Ref: SnsTopic

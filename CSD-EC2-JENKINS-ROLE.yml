@@ -1,0 +1,369 @@
+Parameters:
+  Env:
+    Description: Environment Suffix 
+    Type: String
+    Default: dev
+  ProjectName:
+    Description: Enter the Project name
+    Type: String
+Resources:
+  Ec2Role:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      Tags:
+      - Key: Name
+        Value: 
+          Fn::Join:
+          - "-"
+          - - CSD-BUILD-EC2-ROLE
+            - Ref: Env
+      - Key: Owner
+        Value: ocs
+      - Key: Application
+        Value: opsTool   
+      - Key: Environment
+        Value: 
+          Ref: Env  
+      - Key: Project 
+        Value:
+          Ref: ProjectName     
+      RoleName: 
+        Fn::Join:
+        - "-"
+        - - CSD-BUILD-EC2-ROLE
+          - Ref: Env  
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:        
+        - PolicyName: CSD-S3-POLICY
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:AbortMultipartUpload
+                  - s3:GetBucketLocation
+                  - s3:GetObject
+                  - s3:ListBucket
+                  - s3:ListBucketMultipartUploads
+                  - s3:PutObject
+                  - s3:Delete*
+                Resource:
+                   - 'arn:aws:s3:::csd-*' 
+                   - 'arn:aws:s3:::cdktoolkit-*'
+        - PolicyName: CSD-SNS-POLICY
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - SNS:Publish
+                Resource: 
+                  - Fn::Join:
+                    - ':'
+                    -
+                      - 'arn:aws:sns'
+                      - 'us-east-1'
+                      - Ref: AWS::AccountId
+                      - 'CSD-OCS-BUILD-NOTIFY'    
+                  - Fn::Join:
+                    - ':'
+                    -
+                      - 'arn:aws:sns'
+                      - 'us-east-1'
+                      - Ref: AWS::AccountId
+                      - 'CSD-NOTIFY-SYSTEM'   
+                  - Fn::Join:
+                    - ':'
+                    -
+                      - 'arn:aws:sns'
+                      - 'us-west-1'
+                      - Ref: AWS::AccountId
+                      - 'CSD-OCS-BUILD-NOTIFY'    
+                  - Fn::Join:
+                    - ':'
+                    -
+                      - 'arn:aws:sns'
+                      - 'us-west-1'
+                      - Ref: AWS::AccountId
+                      - 'CSD-NOTIFY-SYSTEM'  
+        - PolicyName: CSD-CA-POLICY
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:    
+                  - codeartifact:*      
+                Resource: 
+                  - Fn::Join:
+                    - ':'
+                    -
+                      - 'arn:aws:codeartifact'
+                      - 'us-east-1'
+                      - Ref: AWS::AccountId
+                      - 'repository/*/ocs-*'
+                  - Fn::Join:
+                    - ':'
+                    -
+                      - 'arn:aws:codeartifact'
+                      - 'us-east-1'
+                      - Ref: AWS::AccountId
+                      - 'domain/*'  
+                  - Fn::Join:
+                    - ':'
+                    -
+                      - 'arn:aws:codeartifact'
+                      - 'us-east-1'
+                      - Ref: AWS::AccountId
+                      - 'package/*/*/*/*/*'   
+                  - Fn::Join:
+                    - ':'
+                    -
+                      - 'arn:aws:codeartifact'
+                      - 'us-west-1'
+                      - Ref: AWS::AccountId
+                      - 'repository/*/ocs-*'
+                  - Fn::Join:
+                    - ':'
+                    -
+                      - 'arn:aws:codeartifact'
+                      - 'us-west-1'
+                      - Ref: AWS::AccountId
+                      - 'domain/*'  
+                  - Fn::Join:
+                    - ':'
+                    -
+                      - 'arn:aws:codeartifact'
+                      - 'us-west-1'
+                      - Ref: AWS::AccountId
+                      - 'package/*/*/*/*/*'   
+        - PolicyName: CSD-STS-POLICY
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:    
+                  - "sts:GetSessionToken"
+                  - "sts:AssumeRole"
+                  - "sts:GetFederationToken"
+                  - "sts:GetAccessKeyInfo"
+                  - "sts:GetCallerIdentity"
+                  - "sts:GetServiceBearerToken"  
+                  - "iam:Passrole"   
+                Resource: '*'           
+        - PolicyName: CSD-APPSYNC-POLICY
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:    
+                  - "appsync:*"
+                Resource: '*'           
+        - PolicyName: CSD-SES-POLICY
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:    
+                  - ses:SendEmail
+                  - ses:SendTemplatedEmail
+                  - ses:SendCustomVerificationEmail
+                  - ses:UpdateTemplate
+                  - ses:GetTemplate
+                  - ses:ListIdentities
+                  - ses:VerifyEmailAddress
+                  - ses:GetCustomVerificationEmailTemplate
+                  - ses:CreateTemplate
+                  - ses:SendRawEmail
+                  - ses:SendBulkTemplatedEmail
+                Resource: '*'       
+        - PolicyName: CSD-CF-POLICY
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:         
+                  - "cloudformation:*"   
+                Resource:   
+                  - Fn::Join:
+                    - ':'
+                    -
+                      - 'arn:aws:cloudformation'
+                      - 'us-east-1'
+                      - Ref: AWS::AccountId
+                      - 'stack/CDKToolkit/*'
+                  - Fn::Join:
+                    - ':'
+                    -
+                      - 'arn:aws:cloudformation'
+                      - 'us-east-1'
+                      - Ref: AWS::AccountId
+                      - 'stack/csd-*/*'
+                  - Fn::Join:
+                    - ':'
+                    -
+                      - 'arn:aws:cloudformation'
+                      - 'us-east-1'
+                      - Ref: AWS::AccountId
+                      - 'stack/CSD-*/*'      
+                  - Fn::Join:
+                    - ':'
+                    -
+                      - 'arn:aws:codeartifact'
+                      - 'us-east-1'
+                      - Ref: AWS::AccountId
+                      - 'type/resource/*'  
+                  - Fn::Join:
+                    - ':'
+                    -
+                      - 'arn:aws:codeartifact'
+                      - 'us-east-1'
+                      - Ref: AWS::AccountId
+                      - 'stackset-target/*' 
+                  - Fn::Join:
+                    - ':'
+                    -
+                      - 'arn:aws:cloudformation'
+                      - 'us-west-1'
+                      - Ref: AWS::AccountId
+                      - 'stack/CDKToolkit/*'
+                  - Fn::Join:
+                    - ':'
+                    -
+                      - 'arn:aws:cloudformation'
+                      - 'us-west-1'
+                      - Ref: AWS::AccountId
+                      - 'stack/csd-*/*'  
+                  - Fn::Join:
+                    - ':'
+                    -
+                      - 'arn:aws:cloudformation'
+                      - 'us-west-1'
+                      - Ref: AWS::AccountId
+                      - 'stack/CSD-*/*'     
+                  - Fn::Join:
+                    - ':'
+                    -
+                      - 'arn:aws:codeartifact'
+                      - 'us-west-1'
+                      - Ref: AWS::AccountId
+                      - 'type/resource/*'  
+                  - Fn::Join:
+                    - ':'
+                    -
+                      - 'arn:aws:codeartifact'
+                      - 'us-west-1'
+                      - Ref: AWS::AccountId
+                      - 'stackset-target/*'       
+        - PolicyName: CSD-SSM-POLICY
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:    
+                  - "ssm:PutParameter"
+                  - "ssm:LabelParameterVersion"
+                  - "ssm:DeleteParameter"
+                  - "ssm:DescribeParameters"
+                  - "ssm:RemoveTagsFromResource"
+                  - "ssm:GetParameterHistory"
+                  - "ssm:AddTagsToResource"
+                  - "ssm:GetParametersByPath"
+                  - "ssm:GetParameters"
+                  - "ssm:GetParameter"   
+                Resource: 
+                  - Fn::Join:
+                    - ':'
+                    -
+                      - 'arn:aws:ssm'
+                      - 'us-east-1'
+                      - Ref: AWS::AccountId
+                      - 'parameter/*'  
+                  - Fn::Join:
+                    - ':'
+                    -
+                      - 'arn:aws:ssm'
+                      - 'us-west-1'
+                      - Ref: AWS::AccountId
+                      - 'parameter/*'      
+        - PolicyName: CSD-LAMBDA-EC2-POLICY
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:    
+                  - 'ec2:Describe*'
+                  - 'ec2:DeleteNetworkInterfacePermission'
+                  - 'lambda:ListFunctions'
+                  - 'ec2:CreateNetworkInterfacePermission'
+                  - 'lambda:ListEventSourceMappings'
+                  - 'lambda:ListLayerVersions'
+                  - 'lambda:ListLayers'
+                  - 'lambda:GetAccountSettings'
+                  - 'lambda:CreateEventSourceMapping'
+                  - 'lambda:ListCodeSigningConfigs' 
+                Resource: '*'
+              - Effect: Allow
+                Action: 
+                  - "lambda:*"
+                Resource:
+                  - Fn::Join:
+                    - ':'
+                    -
+                      - 'arn:aws:lambda'
+                      - 'us-east-1'
+                      - Ref: AWS::AccountId
+                      - 'event-source-mapping:*'             
+                  - Fn::Join:
+                    - ':'
+                    -
+                      - 'arn:aws:lambda'
+                      - 'us-east-1'
+                      - Ref: AWS::AccountId
+                      - 'layer:*:*'       
+                  - Fn::Join:
+                    - ':'
+                    -
+                      - 'arn:aws:lambda'
+                      - 'us-east-1'
+                      - Ref: AWS::AccountId
+                      - 'function:csd-*'    
+                  - Fn::Join:
+                    - ':'
+                    -
+                      - 'arn:aws:lambda'
+                      - 'us-west-1'
+                      - Ref: AWS::AccountId
+                      - 'event-source-mapping:*' 
+                  - Fn::Join:
+                    - ':'
+                    -
+                      - 'arn:aws:lambda'
+                      - 'us-west-1'
+                      - Ref: AWS::AccountId
+                      - 'layer:*:*'       
+                  - Fn::Join:
+                    - ':'
+                    -
+                      - 'arn:aws:lambda'
+                      - 'us-west-1'
+                      - Ref: AWS::AccountId
+                      - 'function:csd-*'       
+                
+  InstanceProfileNv:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+      Roles:
+        - !Ref Ec2Role
+      InstanceProfileName: 
+        Fn::Join:
+        - "-"
+        - - csd-build-profile-dev
+          - Ref: Env 

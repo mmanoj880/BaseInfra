@@ -1,0 +1,286 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Base Infrastructure'
+
+Parameters:
+  DefReadCap:
+    Description: Read Capacity Units
+    Type: String
+    Default: '1'
+  DefWriteCap:
+    Description: Write Capacity Units
+    Type: String
+    Default: '1'
+  Env:
+    Description: Environment Suffix
+    Type: String
+    Default: Dev
+  StackName:
+    Description: Name of the root stack
+    Type: String
+  ProjectName:
+    Description: Enter the Project name
+    Type: String
+    Default: CSD
+  VpcId:
+    Description: Enter the Vpc Id
+    Type: String
+  PrivateDbSubnet1:
+    Description: Enter the Dax Subnet Id1
+    Type: String
+  PrivateDbSubnet2:
+    Description: Enter the Dax Subnet Id2
+    Type: String
+  PublicSubnet1:
+    Description: Enter the PublicSubnet1
+    Type: String
+  PublicSubnet2:
+    Description: Enter the PublicSubnet2
+    Type: String
+  PrivateAppSubnet1:
+    Description: Enter the PrivateAppSubnet1
+    Type: String
+  PrivateAppSubnet2:
+    Description: Enter the PrivateAppSubnet2
+    Type: String
+   
+Resources:
+  CSDSSMPARAMETERSTACK:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: CSDLAMBDAROLESTACK
+    Properties:
+      Parameters:
+        Env: !Ref Env
+        StackName: !Ref StackName
+        ProjectName: !Ref ProjectName
+        VpcId: !Ref VpcId
+        PublicSubnet1: !Ref PublicSubnet1
+        PublicSubnet2: !Ref PublicSubnet2
+        PrivateAppSubnet1: !Ref PrivateAppSubnet1
+        PrivateAppSubnet2: !Ref PrivateAppSubnet2
+      TemplateURL: https://csd-baseinfra-template.s3-us-west-1.amazonaws.com/CSD-SSM-PARAMETERS.yml
+      TimeoutInMinutes: '10'
+  CSDDAXSTACK:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+        Env: !Ref Env
+        ProjectName: !Ref ProjectName
+        VpcId: !Ref VpcId
+        PrivateDbSubnet1: !Ref PrivateDbSubnet1
+        PrivateDbSubnet2: !Ref PrivateDbSubnet2
+      TemplateURL: https://csd-baseinfra-template.s3-us-west-1.amazonaws.com/CSD-DAX-CLUSTER.yml
+      TimeoutInMinutes: '15'  
+  CSDDYNAMODBSTACK:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+        DefReadCap: !Ref DefReadCap
+        DefWriteCap: !Ref DefWriteCap
+        Env: !Ref Env
+        ProjectName: !Ref ProjectName      
+      TemplateURL: https://csd-baseinfra-template.s3-us-west-1.amazonaws.com/CSD-DYNAMODB-TABLE.yml
+      TimeoutInMinutes: '5'
+  CSDLAMBDAROLESTACK:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: CSDAPPSYNCROLESTACK
+    Properties:
+      Parameters:
+        Env: !Ref Env  
+        ProjectName: !Ref ProjectName  
+      TemplateURL: https://csd-baseinfra-template.s3-us-west-1.amazonaws.com/CSD-DAX-LAMBDA-IAM-ROLE.yml
+      TimeoutInMinutes: '5'
+  CSDAPIGWROLESTACK:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+        Env: !Ref Env    
+        ProjectName: !Ref ProjectName 
+      TemplateURL: https://csd-baseinfra-template.s3-us-west-1.amazonaws.com/CSD-APIGW-IAM-ROLE.yml
+      TimeoutInMinutes: '10'
+  CSDAPPSYNCROLESTACK:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+        Env: !Ref Env
+        ProjectName: !Ref ProjectName
+      TemplateURL: https://csd-baseinfra-template.s3-us-west-1.amazonaws.com/CSD-APPSYNC-IAM-ROLE.yml
+      TimeoutInMinutes: '5'
+  CSDAMPLIFYROLESTACK:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+        Env: !Ref Env  
+        ProjectName: !Ref ProjectName    
+      TemplateURL: https://csd-baseinfra-template.s3-us-west-1.amazonaws.com/CSD-AMPLIFY-IAM-ROLE.yml
+      TimeoutInMinutes: '5'
+  CSDECSROLESTACK:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+        Env: !Ref Env   
+        ProjectName: !Ref ProjectName     
+      TemplateURL: https://csd-baseinfra-template.s3-us-west-1.amazonaws.com/CSD-ECS-IAM-ROLE.yml
+      TimeoutInMinutes: '5'
+  CSDKINESISFIREHOUSEROLESTACK:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+        Env: !Ref Env      
+        ProjectName: !Ref ProjectName
+      TemplateURL: https://csd-baseinfra-template.s3-us-west-1.amazonaws.com/CSD-KINESISFIREHOUSE-IAM-ROLE.yml
+      TimeoutInMinutes: '5'  
+  CSDSNSSTACK:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+        Env: !Ref Env
+        ProjectName: !Ref ProjectName
+      TemplateURL: https://csd-baseinfra-template.s3-us-west-1.amazonaws.com/CSD-SNS.yml
+      TimeoutInMinutes: '5'
+  CSDEC2BUILDSTACK:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+        Env: !Ref Env
+        ProjectName: !Ref ProjectName
+      TemplateURL: https://csd-baseinfra-template.s3-us-west-1.amazonaws.com/CSD-EC2-JENKINS-ROLE.yml
+      TimeoutInMinutes: '5'
+Outputs:
+  TopicName: 
+    Value: !GetAtt 'CSDSNSSTACK.Outputs.TopicName'
+    Description: Topic of the Sns
+    Export:
+      Name:
+        Fn::Join:
+          - "-"
+          - - !Sub "CSD-${AWS::StackName}-TopicName"
+            - Ref: Env              
+  CsdDaxClusterName:
+    Value: !GetAtt 'CSDDAXSTACK.Outputs.CsdDaxClusterName'
+    Description: DAX Cluster  
+    Export:
+      Name:
+        Fn::Join:
+        - "-"
+        - - !Sub "CSD-${AWS::StackName}-CsdDaxClusterName"
+          - Ref: Env    
+  CsdDaxClusterSecurityGroup: 
+    Value: !GetAtt 'CSDDAXSTACK.Outputs.CsdDaxClusterSecurityGroup'
+    Description: DAX Cluster  
+    Export:
+      Name:
+
+        Fn::Join:
+
+        - "-"
+        - - !Sub "CSD-${AWS::StackName}-CsdDaxClusterSecurityGroup"
+          - Ref: Env    
+  CsdDriverTableName:
+    Value: !GetAtt 'CSDDYNAMODBSTACK.Outputs.CsdDriverTableName'
+    Description: Table Name
+    Export:
+      Name:
+        Fn::Join:
+        - "-"
+        - - !Sub "CSD-${AWS::StackName}-CsdDriverTable"
+          - Ref: Env
+  CsdVehicleTableName:
+    Value: !GetAtt 'CSDDYNAMODBSTACK.Outputs.CsdVehicleTableName'
+    Description: Table Name
+    Export:
+      Name:
+        Fn::Join:
+        - "-"
+        - - !Sub "CSD-${AWS::StackName}-CsdVehicleTable"
+          - Ref: Env
+  CsdSiteTableName:
+    Value: !GetAtt 'CSDDYNAMODBSTACK.Outputs.CsdSiteTableName'
+    Description: Table Name
+    Export:
+      Name:
+        Fn::Join:
+        - "-"
+        - - !Sub "CSD-${AWS::StackName}-CsdSiteTable"
+          - Ref: Env
+  CsdRouteTableName:
+    Value: !GetAtt 'CSDDYNAMODBSTACK.Outputs.CsdRouteTableName'
+    Description: Table Name
+    Export:
+      Name:
+        Fn::Join:
+        - "-"
+        - - !Sub "CSD-${AWS::StackName}-CsdRouteTable"
+          - Ref: Env
+  CsdLobTableName:
+    Value: !GetAtt 'CSDDYNAMODBSTACK.Outputs.CsdLobTableName'
+    Description: Table Name
+    Export:
+      Name:
+        Fn::Join:
+        - "-"
+        - - !Sub "CSD-${AWS::StackName}-CsdLob"
+          - Ref: Env
+  CsdEmployeeTableName:
+    Value: !GetAtt 'CSDDYNAMODBSTACK.Outputs.CsdEmployeeTableName'
+    Description: Table Name
+    Export:
+      Name:
+        Fn::Join:
+        - "-"
+        - - !Sub "CSD-${AWS::StackName}-CsdEmployeeTable"
+          - Ref: Env
+  LambdaRoleName:
+    Value: !GetAtt 'CSDLAMBDAROLESTACK.Outputs.LambdaRoleName'
+    Description: Role Name
+    Export:
+      Name:
+        Fn::Join:
+        - "-"
+        - - !Sub "CSD-${AWS::StackName}-LambdaRole"
+          - Ref: Env
+  APIGWRole:
+    Value: !GetAtt 'CSDAPIGWROLESTACK.Outputs.APIGWRole'
+    Description: Role Name
+    Export:
+      Name:
+        Fn::Join:
+        - "-"
+        - - !Sub "CSD-${AWS::StackName}-APIGWRole"
+          - Ref: Env
+  APPSYNCRole:
+    Value: !GetAtt 'CSDAPPSYNCROLESTACK.Outputs.APPSYNCRole'
+    Description: Role Name
+    Export: 
+      Name: 
+        Fn::Join:
+        - "-"
+        - - !Sub "CSD-${AWS::StackName}-AppSyncRole"
+          - Ref: Env
+  CSDAMPLIFYRole:
+    Value: !GetAtt 'CSDAMPLIFYROLESTACK.Outputs.CSDAMPLIFYRole'
+    Description: Role Name
+    Export:
+      Name:
+        Fn::Join:
+        - "-"
+        - - !Sub "CSD-${AWS::StackName}-CsdAmplifyRole"
+          - Ref: Env
+  ECSIAMRole:
+    Value: !GetAtt 'CSDECSROLESTACK.Outputs.ECSIAMRole'
+    Description: Role Name
+    Export:
+      Name:
+       Fn::Join:
+        - "-"
+        - - !Sub "CSD-${AWS::StackName}-ECSRole"
+          - Ref: Env
+  KINESISFIREHOUSEIAMRole:
+    Value: !GetAtt 'CSDKINESISFIREHOUSEROLESTACK.Outputs.KINESISFIREHOUSEIAMRole'
+    Description: Role Name
+    Export:
+      Name:
+       Fn::Join:
+        - "-"
+        - - !Sub "CSD-${AWS::StackName}-KinesisfirehouseRole"
+          - Ref: Env  

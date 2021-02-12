@@ -1,0 +1,700 @@
+Parameters:
+  DefReadCap:
+    Description: Read Capacity Units
+    Type: String
+    Default: '1'
+  DefWriteCap:
+    Description: Write Capacity Units
+    Type: String
+    Default: '1'
+  Env:
+    Description: Environment Suffix
+    Type: String
+    Default: Dev  
+  ProjectName:
+    Description: Enter the Project name
+    Type: String
+Resources:
+  CsdUserRoles:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      Tags:
+      - Key: Name
+        Value: 
+          Fn::Join:
+          - "-"
+          - - CSD-USERROLESTABLE
+            - Ref: Env
+      - Key: Owner
+        Value: ocs
+      - Key: Application
+        Value: opsTool  
+      - Key: Environment
+        Value: 
+          Ref: Env  
+      - Key: Project 
+        Value:
+          Ref: ProjectName      
+      AttributeDefinitions:
+      - AttributeName: user_id
+        AttributeType: S
+      - AttributeName: role_id
+        AttributeType: S        
+      KeySchema:
+      - AttributeName: user_id
+        KeyType: HASH
+      - AttributeName: role_id
+        KeyType: RANGE  
+      ProvisionedThroughput:
+        ReadCapacityUnits:
+          Ref: DefReadCap
+        WriteCapacityUnits:
+          Ref: DefWriteCap
+      TableName:
+        Fn::Join:
+        - "-"
+        - - csd-user_roles
+          - Ref: Env
+  UserRolesWriteCapacityScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 5
+      MinCapacity: 1
+      ResourceId: !Join
+        - /
+        - - table
+          - !Ref CsdUserRoles
+      RoleARN: !GetAtt ScalingRole.Arn
+      ScalableDimension: dynamodb:table:WriteCapacityUnits
+      ServiceNamespace: dynamodb
+  UserRolesReadCapacityScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 5
+      MinCapacity: 1
+      ResourceId: !Join
+        - /
+        - - table
+          - !Ref CsdUserRoles
+      RoleARN: !GetAtt ScalingRole.Arn
+      ScalableDimension: dynamodb:table:ReadCapacityUnits
+      ServiceNamespace: dynamodb
+  CsdPlanningView:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      Tags:
+      - Key: Name
+        Value: 
+          Fn::Join:
+          - "-"
+          - - CSD-PLANNINGVIEW
+            - Ref: Env
+      - Key: Owner
+        Value: ocs
+      - Key: Application
+        Value: opsTool 
+      - Key: Environment
+        Value: 
+          Ref: Env  
+      - Key: Project 
+        Value:
+          Ref: ProjectName       
+      AttributeDefinitions:
+      - AttributeName: pkey
+        AttributeType: S
+      - AttributeName: uuid
+        AttributeType: S        
+      KeySchema:
+      - AttributeName: pkey
+        KeyType: HASH
+      - AttributeName: uuid
+        KeyType: RANGE  
+      ProvisionedThroughput:
+        ReadCapacityUnits:
+          Ref: DefReadCap
+        WriteCapacityUnits:
+          Ref: DefWriteCap
+      TableName:
+        Fn::Join:
+        - "-"
+        - - csd-planning-view
+          - Ref: Env
+  PlanningWriteCapacityScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 5
+      MinCapacity: 1
+      ResourceId: !Join
+        - /
+        - - table
+          - !Ref CsdPlanningView
+      RoleARN: !GetAtt ScalingRole.Arn
+      ScalableDimension: dynamodb:table:WriteCapacityUnits
+      ServiceNamespace: dynamodb
+  PlanningReadCapacityScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 5
+      MinCapacity: 1
+      ResourceId: !Join
+        - /
+        - - table
+          - !Ref CsdPlanningView
+      RoleARN: !GetAtt ScalingRole.Arn
+      ScalableDimension: dynamodb:table:ReadCapacityUnits
+      ServiceNamespace: dynamodb
+  CsdDriverTimeEntry:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      Tags:
+      - Key: Name
+        Value: 
+          Fn::Join:
+          - "-"
+          - - CSD-DRIVERTIMEENTRYTABLE
+            - Ref: Env
+      - Key: Owner
+        Value: ocs
+      - Key: Application
+        Value: opsTool  
+      - Key: Environment
+        Value: 
+          Ref: Env  
+      - Key: Project 
+        Value:
+          Ref: ProjectName       
+      AttributeDefinitions:
+      - AttributeName: driver_id
+        AttributeType: S
+      - AttributeName: time_entry_date
+        AttributeType: S        
+      KeySchema:
+      - AttributeName: driver_id
+        KeyType: HASH
+      - AttributeName: time_entry_date
+        KeyType: RANGE  
+      ProvisionedThroughput:
+        ReadCapacityUnits:
+          Ref: DefReadCap
+        WriteCapacityUnits:
+          Ref: DefWriteCap
+      TableName:
+        Fn::Join:
+        - "-"
+        - - csd-driver-time-entry
+          - Ref: Env
+  DriverTimeWriteCapacityScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 5
+      MinCapacity: 1
+      ResourceId: !Join
+        - /
+        - - table
+          - !Ref CsdDriverTimeEntry
+      RoleARN: !GetAtt ScalingRole.Arn
+      ScalableDimension: dynamodb:table:WriteCapacityUnits
+      ServiceNamespace: dynamodb
+  DriverTimeReadCapacityScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 5
+      MinCapacity: 1
+      ResourceId: !Join
+        - /
+        - - table
+          - !Ref CsdDriverTimeEntry
+      RoleARN: !GetAtt ScalingRole.Arn
+      ScalableDimension: dynamodb:table:ReadCapacityUnits
+      ServiceNamespace: dynamodb
+  CsdDriver:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      Tags:
+      - Key: Name
+        Value: 
+          Fn::Join:
+          - "-"
+          - - CSD-DRIVERTABLE
+            - Ref: Env
+      - Key: Owner
+        Value: ocs
+      - Key: Application
+        Value: opsTool  
+      - Key: Environment
+        Value: 
+          Ref: Env  
+      - Key: Project 
+        Value:
+          Ref: ProjectName      
+      AttributeDefinitions:
+      - AttributeName: driver_id
+        AttributeType: S
+      KeySchema:
+      - AttributeName: driver_id
+        KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits:
+          Ref: DefReadCap
+        WriteCapacityUnits:
+          Ref: DefWriteCap
+      TableName:
+        Fn::Join:
+        - "-"
+        - - csd-driver
+          - Ref: Env
+  DriverWriteCapacityScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 5
+      MinCapacity: 1
+      ResourceId: !Join
+        - /
+        - - table
+          - !Ref CsdDriver
+      RoleARN: !GetAtt ScalingRole.Arn
+      ScalableDimension: dynamodb:table:WriteCapacityUnits
+      ServiceNamespace: dynamodb
+  DriverReadCapacityScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 5
+      MinCapacity: 1
+      ResourceId: !Join
+        - /
+        - - table
+          - !Ref CsdDriver
+      RoleARN: !GetAtt ScalingRole.Arn
+      ScalableDimension: dynamodb:table:ReadCapacityUnits
+      ServiceNamespace: dynamodb
+  CsdEmployee:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      Tags:
+      - Key: Name
+        Value: 
+          Fn::Join:
+          - "-"
+          - - CSD-EMPLOYEETABLE
+            - Ref: Env
+      - Key: Owner
+        Value: ocs
+      - Key: Application
+        Value: opsTool 
+      - Key: Environment
+        Value: 
+          Ref: Env  
+      - Key: Project 
+        Value:
+          Ref: ProjectName       
+      AttributeDefinitions:
+      - AttributeName: user_id
+        AttributeType: S
+      KeySchema:
+      - AttributeName: user_id
+        KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits:
+          Ref: DefReadCap
+        WriteCapacityUnits:
+          Ref: DefWriteCap
+      TableName:
+        Fn::Join:
+        - "-"
+        - - csd-employee
+          - Ref: Env
+  EmployeeWriteCapacityScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 5
+      MinCapacity: 1
+      ResourceId: !Join
+        - /
+        - - table
+          - !Ref CsdEmployee
+      RoleARN: !GetAtt ScalingRole.Arn
+      ScalableDimension: dynamodb:table:WriteCapacityUnits
+      ServiceNamespace: dynamodb
+  EmployeeReadCapacityScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 5
+      MinCapacity: 1
+      ResourceId: !Join
+        - /
+        - - table
+          - !Ref CsdEmployee
+      RoleARN: !GetAtt ScalingRole.Arn
+      ScalableDimension: dynamodb:table:ReadCapacityUnits
+      ServiceNamespace: dynamodb
+  CsdLob:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      Tags:
+      - Key: Name
+        Value: 
+          Fn::Join:
+          - "-"
+          - - CSD-LOBTABLE
+            - Ref: Env
+      - Key: Owner
+        Value: ocs
+      - Key: Application
+        Value: opsTool   
+      - Key: Environment
+        Value: 
+          Ref: Env  
+      - Key: Project 
+        Value:
+          Ref: ProjectName     
+      AttributeDefinitions:
+      - AttributeName: lob_id
+        AttributeType: S
+      KeySchema:
+      - AttributeName: lob_id
+        KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits:
+          Ref: DefReadCap
+        WriteCapacityUnits:
+          Ref: DefWriteCap
+      TableName:
+        Fn::Join:
+        - "-"
+        - - csd-lob
+          - Ref: Env
+  LobWriteCapacityScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 5
+      MinCapacity: 1
+      ResourceId: !Join
+        - /
+        - - table
+          - !Ref CsdLob
+      RoleARN: !GetAtt ScalingRole.Arn
+      ScalableDimension: dynamodb:table:WriteCapacityUnits
+      ServiceNamespace: dynamodb
+  LobReadCapacityScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 5
+      MinCapacity: 1
+      ResourceId: !Join
+        - /
+        - - table
+          - !Ref CsdLob
+      RoleARN: !GetAtt ScalingRole.Arn
+      ScalableDimension: dynamodb:table:ReadCapacityUnits
+      ServiceNamespace: dynamodb
+  CsdRoute:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      Tags:
+      - Key: Name
+        Value: 
+          Fn::Join:
+          - "-"
+          - - CSD-ROUTETABLE
+            - Ref: Env
+      - Key: Owner
+        Value: ocs
+      - Key: Application
+        Value: opsTool   
+      - Key: Environment
+        Value: 
+          Ref: Env  
+      - Key: Project 
+        Value:
+          Ref: ProjectName   
+      AttributeDefinitions:
+      - AttributeName: route_id
+        AttributeType: S
+      KeySchema:
+      - AttributeName: route_id
+        KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits:
+          Ref: DefReadCap
+        WriteCapacityUnits:
+          Ref: DefWriteCap
+      TableName:
+        Fn::Join:
+        - "-"
+        - - csd-route
+          - Ref: Env
+  RouteWriteCapacityScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 5
+      MinCapacity: 1
+      ResourceId: !Join
+        - /
+        - - table
+          - !Ref CsdRoute
+      RoleARN: !GetAtt ScalingRole.Arn
+      ScalableDimension: dynamodb:table:WriteCapacityUnits
+      ServiceNamespace: dynamodb
+  RouteReadCapacityScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 5
+      MinCapacity: 1
+      ResourceId: !Join
+        - /
+        - - table
+          - !Ref CsdRoute
+      RoleARN: !GetAtt ScalingRole.Arn
+      ScalableDimension: dynamodb:table:ReadCapacityUnits
+      ServiceNamespace: dynamodb
+  CsdSite:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      Tags:
+      - Key: Name
+        Value: 
+          Fn::Join:
+          - "-"
+          - - CSD-SITETABLE
+            - Ref: Env
+      - Key: Owner
+        Value: ocs
+      - Key: Application
+        Value: opsTool     
+      - Key: Environment
+        Value: 
+          Ref: Env  
+      - Key: Project 
+        Value:
+          Ref: ProjectName    
+      AttributeDefinitions:
+      - AttributeName: site_id
+        AttributeType: S
+      KeySchema:
+      - AttributeName: site_id
+        KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits:
+          Ref: DefReadCap
+        WriteCapacityUnits:
+          Ref: DefWriteCap
+      TableName:
+        Fn::Join:
+        - "-"
+        - - csd-site
+          - Ref: Env
+  SiteWriteCapacityScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 5
+      MinCapacity: 1
+      ResourceId: !Join
+        - /
+        - - table
+          - !Ref CsdSite
+      RoleARN: !GetAtt ScalingRole.Arn
+      ScalableDimension: dynamodb:table:WriteCapacityUnits
+      ServiceNamespace: dynamodb
+  SiteReadCapacityScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 5
+      MinCapacity: 1
+      ResourceId: !Join
+        - /
+        - - table
+          - !Ref CsdSite
+      RoleARN: !GetAtt ScalingRole.Arn
+      ScalableDimension: dynamodb:table:ReadCapacityUnits
+      ServiceNamespace: dynamodb
+  CsdVehicle:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      Tags:
+      - Key: Name
+        Value: 
+          Fn::Join:
+          - "-"
+          - - CSD-VEHICLETABLE
+            - Ref: Env
+      - Key: Owner
+        Value: ocs
+      - Key: Application
+        Value: opsTool    
+      - Key: Environment
+        Value: 
+          Ref: Env  
+      - Key: Project 
+        Value:
+          Ref: ProjectName      
+      AttributeDefinitions:
+      - AttributeName: vehicle_id
+        AttributeType: S
+      KeySchema:
+      - AttributeName: vehicle_id
+        KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits:
+          Ref: DefReadCap
+        WriteCapacityUnits:
+          Ref: DefWriteCap
+      TableName:
+        Fn::Join:
+        - "-"
+        - - csd-vehicle
+          - Ref: Env
+  VehicleWriteCapacityScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 5
+      MinCapacity: 1
+      ResourceId: !Join
+        - /
+        - - table
+          - !Ref CsdVehicle
+      RoleARN: !GetAtt ScalingRole.Arn
+      ScalableDimension: dynamodb:table:WriteCapacityUnits
+      ServiceNamespace: dynamodb
+  VehicleReadCapacityScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 5
+      MinCapacity: 1
+      ResourceId: !Join
+        - /
+        - - table
+          - !Ref CsdVehicle
+      RoleARN: !GetAtt ScalingRole.Arn
+      ScalableDimension: dynamodb:table:ReadCapacityUnits
+      ServiceNamespace: dynamodb
+  ScalingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: 
+        Fn::Join:
+        - "-"
+        - - CSD-DYNAMODB-SCALING
+          - Ref: Env 
+      Tags:
+      - Key: Name
+        Value: 
+          Fn::Join:
+          - "-"
+          - - CSD-DYNAMODBSCALING
+            - Ref: Env
+      - Key: Owner
+        Value: ocs
+      - Key: Application
+        Value: opsTool 
+      - Key: Environment
+        Value: 
+          Ref: Env  
+      - Key: Project 
+        Value:
+          Ref: ProjectName 
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service:
+                - application-autoscaling.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        -
+          PolicyName: CSD-DYNAMODB-SCALING
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              -
+                Effect: "Allow"
+                Action:
+                  - "dynamodb:DescribeTable"
+                  - "dynamodb:UpdateTable"
+                  - "cloudwatch:PutMetricAlarm"
+                  - "cloudwatch:DescribeAlarms"
+                  - "cloudwatch:GetMetricStatistics"
+                  - "cloudwatch:SetAlarmState"
+                  - "cloudwatch:DeleteAlarms"
+                Resource: 
+                  - Fn::Join:
+                    - ":"
+                    -
+                      - 'arn:aws:dynamodb'
+                      - Ref: AWS::Region
+                      - Ref: AWS::AccountId
+                      - 'table/csd-*/*/*/*'
+                  - Fn::Join:
+                    - ":"
+                    -
+                      - 'arn:aws:dynamodb'
+                      - Ref: AWS::Region
+                      - Ref: AWS::AccountId
+                      - 'table/csd-*'
+Outputs:
+  CsdDriverTableName:
+    Description: Table name
+    Value:
+      Ref: CsdDriver
+    Export:
+      Name:
+        Fn::Sub: "CsdDynamoDb-CsdDriver-${Env}"
+  CsdVehicleTableName:
+    Description: Table name
+    Value:
+      Ref: CsdVehicle
+    Export:
+      Name:
+        Fn::Sub: "CsdDynamoDb-CsdVehicleTableName-${Env}"
+  CsdSiteTableName:
+    Description: Table name
+    Value:
+      Ref: CsdSite
+    Export:
+      Name:
+        Fn::Sub: "CsdDynamoDb-CsdSiteTableName-${Env}"
+  CsdRouteTableName:
+    Description: Table name
+    Value:
+      Ref: CsdRoute
+    Export:
+      Name:
+        Fn::Sub: "CsdDynamoDb-CsdRouteTableName-${Env}"   
+  CsdLobTableName:
+    Description: Table name
+    Value:
+      Ref: CsdLob
+    Export:
+      Name:
+        Fn::Sub: "CsdDynamoDb-CsdLobTableName-${Env}" 
+  CsdEmployeeTableName:
+    Description: Table name
+    Value:
+      Ref: CsdEmployee
+    Export:
+      Name:
+        Fn::Sub: "CsdDynamoDb-CsdEmployeeTableName-${Env}" 
+  CsdUserRolesTableName:
+    Description: Table Name
+    Value:
+      Ref: CsdUserRoles
+    Export:
+      Name:
+        Fn::Sub: "CsdDynamoDb-CsdUserRolesTableName-${Env}"
+  CsdDriverTimeTableName:
+    Description: Table Name
+    Value:
+      Ref: CsdDriverTimeEntry
+    Export:
+      Name:
+        Fn::Sub: "CsdDynamoDb-CsdDriverTimeTableName-${Env}"
+  CsdPlanningViewTableName:
+    Description: Table Name
+    Value:
+      Ref: CsdPlanningView
+    Export:
+      Name:
+        Fn::Sub: "CsdDynamoDb-CsdPlanningViewTableName-${Env}"

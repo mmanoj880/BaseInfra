@@ -1,0 +1,208 @@
+Parameters:
+  Env:
+    Description: Environment Suffix
+    Type: String
+    Default: dev
+  StackName:
+    Description:  Name of BaseInfrastructure
+    Type: String
+    Default: baseinfra
+  ProjectName:
+    Description: Enter the Project name
+    Type: String
+  VpcId:
+    Description: Enter the VpcId 
+    Type: String
+  PublicSubnet1:
+    Description: Enter the PublicSubnet1
+    Type: String
+  PublicSubnet2:
+    Description: Enter the PublicSubnet2
+    Type: String
+  PrivateAppSubnet1:
+    Description: Enter the PrivateAppSubnet1
+    Type: String
+  PrivateAppSubnet2:
+    Description: Enter the PrivateAppSubnet2
+    Type: String
+Resources:
+  VpcIdSSMName:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Tags:
+        Name: CSD-VPC-SSM
+        Owner: ocs
+        Application: opsTool
+        Environment: !Ref Env  
+        Project: !Ref ProjectName
+      Name:
+        Fn::Join:
+        - "-"
+        - - !Sub "CSD-${StackName}-VpcId"
+          - Ref: Env    
+      Type: String  
+      Value:
+        Ref: VpcId
+      Description: SSM Parameter for VpcId
+  PublicSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: 
+          Fn::Join:
+          - "-"
+          - - CSD-PUBLIC-SECURITYGROUP
+            - Ref: Env
+      GroupDescription: Enable HTTP ingress
+      VpcId:
+        Ref: VpcId
+      Tags:
+      - Key: Name
+        Value: 
+          Fn::Join:
+          - "-"
+          - - CSD-PUBLIC-SG
+            - Ref: Env
+      - Key: Owner
+        Value: ocs
+      - Key: Application
+        Value: opsTool 
+      - Key: Environment
+        Value:
+          Ref: Env   
+      - Key: Project 
+        Value:
+          Ref: ProjectName     
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '80'
+        ToPort: '80'
+        CidrIp: 0.0.0.0/0
+  SecurityGroupIdSSMName:
+    Type: AWS::SSM::Parameter
+    DependsOn: PublicSecurityGroup
+    Properties:
+      Tags:
+        Name: CSD-VPC-SSM
+        Owner: ocs
+        Application: opsTool
+        Environment: !Ref Env  
+        Project: !Ref ProjectName        
+      Name:
+        Fn::Join:
+        - "-"
+        - - !Sub "CSD-${StackName}-PublicSecurityGroup"
+          - Ref: Env    
+      Type: String  
+      Value:
+        Ref: PublicSecurityGroup 
+      Description: SSM Parameter for PublicSecurityGroup 
+  SubnetId1SSMName:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Tags:
+        Name: CSD-VPC-SSM
+        Owner: ocs
+        Application: opsTool
+        Environment: !Ref Env  
+        Project: !Ref ProjectName
+      Name:
+        Fn::Join:
+        - "-"
+        - - !Sub "CSD-${StackName}-PublicSubnet1Id"
+          - Ref: Env    
+      Type: String  
+      Value:
+        Ref: PublicSubnet1
+      Description: SSM Parameter for PublicSubnet1
+  SubnetId2SSMName:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Tags:
+        Name: CSD-VPC-SSM
+        Owner: ocs
+        Application: opsTool
+        Environment: !Ref Env  
+        Project: !Ref ProjectName
+      Name:
+        Fn::Join:
+        - "-"
+        - - !Sub "CSD-${StackName}-PublicSubnet2Id"
+          - Ref: Env    
+      Type: String  
+      Value:
+        Ref: PublicSubnet2
+      Description: SSM Parameter for PublicSubnet2
+  ServerlessSubnetId1SSMName:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Tags:
+        Name: CSD-VPC-SSM
+        Owner: ocs
+        Application: opsTool
+        Environment: !Ref Env  
+        Project: !Ref ProjectName
+      Name:
+        Fn::Join:
+        - "-"
+        - - !Sub "CSD-${StackName}-PrivateAppSubnet1Id"
+          - Ref: Env    
+      Type: String  
+      Value:
+        Ref: PrivateAppSubnet1
+      Description: SSM Parameter for PrivateAppSubnet1Id  
+  ServerlessSubnetId2SSMName:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Tags:
+        Name: CSD-VPC-SSM
+        Owner: ocs
+        Application: opsTool
+        Environment: !Ref Env  
+        Project: !Ref ProjectName
+      Name:
+        Fn::Join:
+        - "-"
+        - - !Sub "CSD-${StackName}-PrivateAppSubnet2Id"
+          - Ref: Env    
+      Type: String  
+      Value:
+        Ref: PrivateAppSubnet2
+      Description: SSM Parameter for PrivateAppSubnet2Id  
+  LambdaRoleArnSSMName:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Tags:
+        Name: CSD-VPC-SSM
+        Owner: ocs
+        Application: opsTool
+        Environment: !Ref Env  
+        Project: !Ref ProjectName
+      Name:
+        Fn::Join:
+        - "-"
+        - - !Sub "CSD-${StackName}-LambdaRole"
+          - Ref: Env    
+      Type: String  
+      Value:
+        Fn::ImportValue: 
+          !Sub "CsdLambda-Arn-${Env}"
+      Description: SSM Parameter for LambdaRole
+  AppSyncRoleArnSSMName:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Tags:
+        Name: CSD-VPC-SSM
+        Owner: ocs
+        Application: opsTool
+        Environment: !Ref Env  
+        Project: !Ref ProjectName
+      Name:
+        Fn::Join:
+        - "-"
+        - - !Sub "CSD-${StackName}-AppSyncRole"
+          - Ref: Env    
+      Type: String  
+      Value:
+        Fn::ImportValue: 
+          !Sub "CsdAppSync-Arn-${Env}"
+      Description: SSM Parameter for AppSyncRole

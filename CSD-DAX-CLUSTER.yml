@@ -1,0 +1,165 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: This template will create a DAX cluster
+Parameters:
+  Env:
+    Description: Environment Suffix
+    Type: String
+    Default: dev 
+  ProjectName:
+    Description: Enter the Project name
+    Type: String
+  VpcId:
+    Description: Enter the Vpc Id
+    Type: String
+  PrivateDbSubnet1:
+    Description: Enter the Dax Subnet Id1
+    Type: String
+  PrivateDbSubnet2:
+    Description: Enter the Dax Subnet Id2
+    Type: String
+  
+Resources:
+  DaxCluster:
+    Type: AWS::DAX::Cluster
+    Properties:    
+      Tags:
+        Name: CSD-DAX-CLUSTER
+        Owner: ocs
+        Application: opsTool 
+        Environment: !Ref Env 
+        Project: !Ref ProjectName       
+      ClusterName: 
+        Fn::Join:
+        - "-"
+        - - CsdDax
+          - Ref: Env   
+      NodeType: dax.t2.small
+      ReplicationFactor: 1
+      IAMRoleARN: 
+        Fn::GetAtt: [ DaxIamRole, Arn ]
+      Description: DAX cluster created with CloudFormation
+      SecurityGroupIds:
+      - Fn::GetAtt: [ DaxSecurityGroup, GroupId ]
+      SubnetGroupName:
+        Ref: subnetGroupClu     
+    DependsOn: DaxSecurityGroup    
+
+  DaxSecurityGroup:
+    Type: AWS::EC2::SecurityGroup  
+    DependsOn: DaxIamRole
+    Properties:
+      GroupDescription: Daxsecurity
+      VpcId: 
+        Ref: VpcId
+      SecurityGroupIngress:
+      - CidrIp: 0.0.0.0/0
+        FromPort: '8111'
+        IpProtocol: tcp
+        ToPort: '8111'
+      Tags:
+      - Key: Name
+        Value: 
+          Fn::Join:
+          - "-"
+          - - CSD-DAX-SG
+            - Ref: Env
+      - Key: Owner
+        Value: ocs
+      - Key: Application
+        Value: opsTool 
+      - Key: Project 
+        Value:
+          Ref: ProjectName
+      - Key: Environment 
+        Value:
+          Ref: Env           
+  subnetGroupClu:
+    Type: AWS::DAX::SubnetGroup
+    Properties:
+      SubnetGroupName: 
+        Fn::Join:
+        - "-"
+        - - CsdDaxSubnetGroup
+          - Ref: Env   
+      Description: Subnet Group For DAX Cluster
+      SubnetIds:
+      - Ref: PrivateDbSubnet1
+      - Ref: PrivateDbSubnet2
+  DaxIamRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      Tags:
+      - Key: Name
+        Value: 
+          Fn::Join:
+          - "-"
+          - - CSD-LAMBDA-ROLE
+            - Ref: Env
+      - Key: Owner
+        Value: ocs
+      - Key: Application
+        Value: opsTool
+      - Key: Environment
+        Value: 
+          Ref: Env  
+      - Key: Project 
+        Value:
+          Ref: ProjectName  
+      RoleName: 
+        Fn::Join:
+        - "-"
+        - - CSD-DAX-ROLE
+          - Ref: Env  
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - dax.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: CSD-DYNAMODB-POLICY
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:*
+                Resource: 
+                  - Fn::Join:
+                    - ":"
+                    -
+                      - 'arn:aws:dynamodb'
+                      - Ref: AWS::Region
+                      - Ref: AWS::AccountId
+                      - 'table/csd-*/*/*/*'
+                  - Fn::Join:
+                    - ":"
+                    -
+                      - 'arn:aws:dynamodb'
+                      - Ref: AWS::Region
+                      - Ref: AWS::AccountId
+                      - 'table/csd-*'  
+
+Outputs: 
+  CsdDaxClusterName:
+    Description: DAX Cluster
+    Value:
+      Ref: DaxCluster 
+    Export:
+      Name:
+        Fn::Sub: "CsdDax-ClusterName-${Env}"      
+  CsdDaxClusterSecurityGroup:
+    Description: Dax Cluster Security Group 
+    Value:
+      Ref: DaxSecurityGroup
+    Export:
+      Name:
+        Fn::Sub: "CsdDaxCluster-SecurityGroup-${Env}"
+  CsdDaxRoleARN:
+    Description: Role ARN   
+    Value:
+      Fn::GetAtt: DaxIamRole.Arn

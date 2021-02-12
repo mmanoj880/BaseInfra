@@ -1,0 +1,50 @@
+[
+  {
+    "ParameterKey": "Env",
+    "ParameterValue": "qa1"
+  },
+  {
+    "ParameterKey": "ProjectName",
+    "ParameterValue": "CSD"
+  },
+  {
+      "ParameterKey": "DefReadCap",
+      "ParameterValue": "1"
+  },
+  {
+      "ParameterKey": "DefWriteCap",
+      "ParameterValue": "1"
+  },
+  {
+      "ParameterKey": "StackName",
+      "ParameterValue": "BaseInfraStack"
+  },
+  {
+      "ParameterKey": "VpcId",
+      "ParameterValue": "vpc-24168f43"
+  },
+  {
+      "ParameterKey": "PrivateDbSubnet1",
+      "ParameterValue": "subnet-ae5077c9"
+  },
+  {
+      "ParameterKey": "PrivateDbSubnet2",
+      "ParameterValue": "subnet-cc572797"
+  },
+  {
+      "ParameterKey": "PublicSubnet1",
+      "ParameterValue": "subnet-575f7830"
+  },
+  {
+      "ParameterKey": "PublicSubnet2",
+      "ParameterValue": "subnet-6a5a2a31"
+  },
+  {
+      "ParameterKey": "PrivateAppSubnet1",
+      "ParameterValue": "subnet-b15c7bd6"
+  },
+  {
+      "ParameterKey": "PrivateAppSubnet2",
+      "ParameterValue": "subnet-29592972"
+  }
+]  

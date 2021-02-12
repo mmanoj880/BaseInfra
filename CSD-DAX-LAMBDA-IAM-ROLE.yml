@@ -1,0 +1,153 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'This template will create Lambda Role'
+Parameters:
+  Env:
+    Description: Environment Suffix 
+    Type: String
+    Default: dev
+  ProjectName:
+    Description: Enter the Project name
+    Type: String
+Resources:
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      RoleName: 
+        Fn::Join:
+        - "-"
+        - - CSD-LAMBDA-ROLE
+          - Ref: Env  
+      Tags:
+      - Key: Name
+        Value: 
+          Fn::Join:
+          - "-"
+          - - CSD-LAMBDA-ROLE
+            - Ref: Env
+      - Key: Owner
+        Value: ocs
+      - Key: Application
+        Value: opsTool
+      - Key: Environment
+        Value: 
+          Ref: Env   
+      - Key: Project 
+        Value:
+          Ref: ProjectName      
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: CSD-DYNAMODB-POLICY
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:*
+                Resource: 
+                  - Fn::Join:
+                    - ":"
+                    -
+                      - 'arn:aws:dynamodb'
+                      - Ref: AWS::Region
+                      - Ref: AWS::AccountId
+                      - 'table/csd-*/*/*/*'
+                  - Fn::Join:
+                    - ":"
+                    -
+                      - 'arn:aws:dynamodb'
+                      - Ref: AWS::Region
+                      - Ref: AWS::AccountId
+                      - 'table/csd-*'
+
+        - PolicyName: CSD-S3-POLICY
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:AbortMultipartUpload
+                  - s3:GetBucketLocation
+                  - s3:GetObject
+                  - s3:ListBucket
+                  - s3:ListBucketMultipartUploads
+                  - s3:PutObject
+                  - s3:Delete*
+                Resource: 
+                   - 'arn:aws:s3:::csd-*'   
+        - PolicyName: CSD-CLOUDWATCH-LOG-POLICY
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:GetLogEvents
+                  - logs:PutLogEvents
+                  - logs:TagLogGroup
+                Resource: 
+                  Fn::Join:
+                    - ':'
+                    -
+                      - 'arn:aws:logs'
+                      - Ref: AWS::Region
+                      - Ref: AWS::AccountId
+                      - 'log-group:/aws/lambda/csd-*:*'
+        - PolicyName: CSD-APPSYNC-POLICY
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - appsync:List*
+                  - appsync:Get*
+                  - appsync:Update*
+                  - appsync:Delete*
+                Resource: 
+                  Fn::Join:
+                    - ':'
+                    -
+                      - 'arn:aws:appsync'
+                      - Ref: AWS::Region
+                      - Ref: AWS::AccountId
+                      - 'apis/csd-*'
+        - PolicyName: CSD-VPC-POLICY
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ec2:CreateNetworkInterface"
+                  - "ec2:DescribeNetworkInterfaces"
+                  - "ec2:AssignPrivateIpAddresses"
+                  - "ec2:DeleteNetworkInterface"
+                Resource: '*'
+        - PolicyName: CSD-DAX-POLICY
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "dax:*"
+                Resource: '*'
+Outputs:
+  LambdaRoleName:
+    Description: Role Name
+    Value:
+      Ref: LambdaRole  
+  LambdaRoleARN:
+    Description: Role ARN   
+    Value:
+      Fn::GetAtt: LambdaRole.Arn
+    Export:
+      Name:
+        Fn::Sub: "CsdLambda-Arn-${Env}"
+
